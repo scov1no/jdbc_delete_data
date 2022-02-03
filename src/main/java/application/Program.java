@@ -1,34 +1,33 @@
 package application;
 
 import db.DB;
+import db.DbIntegrityException;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class Program {
     public static void main(String[] args) {
 
         Connection conn = null;
-        Statement st = null;
-        ResultSet rs = null;
-
+        PreparedStatement st = null;
         try{
             conn = DB.getConnection();
 
-            st = conn.createStatement();
+            st = conn.prepareStatement(
+                    "delete from department "
+                    + " where "
+                    + " Id = ? "
+            );
 
-            rs = st.executeQuery("select * from department");
+            st.setInt(1, 2);
 
-            while(rs.next()){
-                System.out.println(rs.getInt("Id") + ", " + rs.getString("Name"));
-            }
+
+            int rowsAffected = st.executeUpdate();
+
+            System.out.println("Done! Rows Affected: " + rowsAffected);
         }catch(SQLException e){
-            e.printStackTrace();
-        }
-        finally {
-            DB.closeResultSet(rs);
+            throw new DbIntegrityException(e.getMessage());
+        }finally{
             DB.closeStatement(st);
             DB.closeConnection();
         }
